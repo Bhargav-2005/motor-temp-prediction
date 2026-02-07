@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor Temperature Prediction - Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #141824;
+            --bg-tertiary: #1a1f2e;
+            --bg-card: #1e2433;
+            --accent-cyan: #00d9ff;
+            --accent-orange: #ff6b35;
+            --text-primary: #e8eaf0;
+            --text-secondary: #a0a5b8;
+            --text-muted: #6b7280;
+            --border-color: #2a3041;
+            --risk-low: #00ff88;
+            --risk-normal: #00d9ff;
+            --risk-warning: #ffa500;
+            --risk-critical: #ff3366;
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00d9ff 0%, #b388ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 3rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        .card h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent-cyan);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .unit-badge {
+            background: var(--bg-tertiary);
+            color: var(--accent-cyan);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            border: 1px solid var(--border-color);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'IBM Plex Mono', monospace;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d9ff 0%, #b388ff 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(0, 217, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-cyan);
+            background: var(--bg-secondary);
+        }
+
+        .gauge-container {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .gauge {
+            position: relative;
+            width: 240px;
+            height: 240px;
+        }
+
+        .gauge-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .gauge-temp {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--accent-cyan);
+        }
+
+        .gauge-unit {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .result-box {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 1rem;
+        }
+
+        .risk-low { background: rgba(0, 255, 136, 0.2); color: var(--risk-low); }
+        .risk-normal { background: rgba(0, 217, 255, 0.2); color: var(--risk-normal); }
+        .risk-warning { background: rgba(255, 165, 0, 0.2); color: var(--risk-warning); }
+        .risk-critical { background: rgba(255, 51, 102, 0.2); color: var(--risk-critical); }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--bg-tertiary);
+            border-top: 4px solid var(--accent-cyan);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ MOTOR TEMP PREDICTOR</h1>
+        <p class="subtitle">AI-Powered Predictive Maintenance System</p>
+
+        <div class="grid">
+            <!-- Input Form -->
+            <div class="card">
+                <h2>Input Parameters</h2>
+                <form id="predictionForm">
+                    <div class="form-group">
+                        <label>
+                            Ambient Temperature
+                            <span class="unit-badge">°C</span>
+                        </label>
+                        <input type="number" name="ambient" step="0.1" placeholder="e.g., 25.5" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Coolant Temperature
+                            <span class="unit-badge">°C</span>
+                        </label>
+                        <input type="number" name="coolant" step="0.1" placeholder="e.g., 22.3" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Voltage d-component
+                            <span class="unit-badge">V</span>
+                        </label>
+                        <input type="number" name="u_d" step="0.1" placeholder="e.g., 0.45" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Voltage q-component
+                            <span class="unit-badge">V</span>
+                        </label>
+                        <input type="number" name="u_q" step="0.1" placeholder="e.g., 0.38" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Motor Speed
+                            <span class="unit-badge">RPM</span>
+                        </label>
+                        <input type="number" name="motor_speed" step="1" placeholder="e.g., 1500" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Current d-component
+                            <span class="unit-badge">A</span>
+                        </label>
+                        <input type="number" name="i_d" step="0.1" placeholder="e.g., 12.5" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Current q-component
+                            <span class="unit-badge">A</span>
+                        </label>
+                        <input type="number" name="i_q" step="0.1" placeholder="e.g., 15.2" required>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn-secondary" onclick="loadSample()">Load Sample</button>
+                        <button type="button" class="btn-secondary" onclick="resetForm()">Reset</button>
+                        <button type="submit" class="btn-primary">🔮 Predict</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results -->
+            <div class="card">
+                <h2>Prediction Results</h2>
+                <div id="results">
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <h3>No predictions yet</h3>
+                        <p>Enter motor parameters and click "Predict" to get started</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>About This Application</h2>
+            <p style="margin-bottom: 1rem;">This is a machine learning application that predicts electric motor rotor temperatures to prevent equipment failures through predictive maintenance.</p>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Model Accuracy:</span>
+                    <span class="info-value">96.32% R²</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Algorithm:</span>
+                    <span class="info-value">Linear Regression</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">RMSE:</span>
+                    <span class="info-value">0.0365</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Backend:</span>
+                    <span class="info-value">Flask + scikit-learn</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        function loadSample() {
+            const form = document.getElementById('predictionForm');
+            form.ambient.value = '25.5';
+            form.coolant.value = '22.3';
+            form.u_d.value = '0.45';
+            form.u_q.value = '0.38';
+            form.motor_speed.value = '1500';
+            form.i_d.value = '12.5';
+            form.i_q.value = '15.2';
+        }
+
+        function resetForm() {
+            document.getElementById('predictionForm').reset();
+            document.getElementById('results').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <h3>No predictions yet</h3>
+                    <p>Enter motor parameters and click "Predict" to get started</p>
+                </div>
+            `;
+        }
+
+        function getRiskColor(risk) {
+            const colors = {
+                'low': '#00ff88',
+                'normal': '#00d9ff',
+                'warning': '#ffa500',
+                'critical': '#ff3366'
+            };
+            return colors[risk] || '#00d9ff';
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Show loading
+            document.getElementById('results').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing motor parameters...</p>
+                </div>
+            `;
+
+            // Get form data
+            const formData = new FormData(e.target);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = parseFloat(value);
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const temp = (result.prediction * 100).toFixed(1);
+                    const color = getRiskColor(result.risk_level);
+
+                    document.getElementById('results').innerHTML = `
+                        <div class="gauge-container">
+                            <div class="gauge">
+                                <svg viewBox="0 0 200 200" style="width: 100%; height: 100%;">
+                                    <circle cx="100" cy="100" r="85" fill="none" stroke="#1a1f2e" stroke-width="20"/>
+                                    <circle cx="100" cy="100" r="85" fill="none" stroke="${color}" stroke-width="20" 
+                                            stroke-linecap="round" stroke-dasharray="${result.prediction * 100 * 5.34} 534"
+                                            transform="rotate(-90 100 100)" 
+                                            style="filter: drop-shadow(0 0 10px ${color});"/>
+                                </svg>
+                                <div class="gauge-value">
+                                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌡️</div>
+                                    <div class="gauge-temp" style="color: ${color};">${temp}</div>
+                                    <div class="gauge-unit">°C</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-box" style="border-color: ${color};">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${color};"></div>
+                                <div>
+                                    <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.25rem;">RISK LEVEL</div>
+                                    <div style="font-size: 1.2rem; font-weight: 700; text-transform: uppercase;">${result.risk_level}</div>
+                                </div>
+                            </div>
+                            <div style="color: #a0a5b8; font-size: 0.9rem; line-height: 1.6;">
+                                ${result.risk_level === 'critical' ? '⚠️ CRITICAL: Immediate attention required!' :
+                                  result.risk_level === 'warning' ? '⚡ Temperature approaching warning threshold' :
+                                  result.risk_level === 'normal' ? '✅ Normal operating temperature' :
+                                  '✨ Operating within safe temperature range'}
+                            </div>
+                            <div class="info-grid" style="margin-top: 1.5rem;">
+                                <div class="info-item">
+                                    <span class="info-label">Prediction:</span>
+                                    <span class="info-value">${result.prediction.toFixed(4)}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Timestamp:</span>
+                                    <span class="info-value">${new Date(result.timestamp).toLocaleTimeString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(result.error || 'Prediction failed');
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">❌</div>
+                        <h3>Connection Error</h3>
+                        <p>Failed to connect to backend at ${API_URL}</p>
+                        <p style="font-size: 0.8rem; margin-top: 1rem;">
+                            Make sure the Flask backend is running on port 5000:<br>
+                            <code style="background: #1a1f2e; padding: 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.5rem;">
+                                cd backend && python app.py
+                            </code>
+                        </p>
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        });
+
+        // Check backend connection on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                if (data.status === 'healthy') {
+                    console.log('✅ Backend connected successfully');
+                }
+            } catch (error) {
+                console.warn('⚠️ Backend not connected. Start it with: cd backend && python app.py');
+            }
+        });
+    </script>
+</body>
+</html>
