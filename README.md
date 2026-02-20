@@ -109,6 +109,11 @@ Frontend runs on `http://localhost:3000`
 3. **Access the Application**
 Open your browser and navigate to `http://localhost:3000`
 
+## Output
+```
+link: https://youtu.be/N5jLLF8rGWI?si=si8lSoQmix8tlxkK
+```
+
 ## 📁 Project Structure
 
 ```
@@ -271,13 +276,16 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
+<!-- ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details. -->
 
 ## 👥 Authors
 
-- Your Name - Initial work
+- Ch Bhargav
+- Ch Siva Prasad
+- G Lawrence
+- D Y Naresh
 
 ## 🙏 Acknowledgments
 
@@ -289,7 +297,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For issues and questions:
 - Open an issue on GitHub
-- Email: support@example.com
+- Email: challabhargav06@gmail.com
 - Documentation: [Project Wiki](wiki-link)
 
 ---
