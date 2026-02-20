@@ -111,7 +111,10 @@ Open your browser and navigate to `http://localhost:3000`
 
 ## Output
 ```
-link: https://youtu.be/N5jLLF8rGWI?si=si8lSoQmix8tlxkK
+
+## 🎥 Demo Video
+
+[![Watch the demo](https://img.youtube.com/vi/N5jLLF8rGWI/0.jpg)](https://youtu.be/N5jLLF8rGWI?si=si8lSoQmix8tlxkK)
 ```
 
 ## 📁 Project Structure
